@@ -16,9 +16,9 @@ const Navbar = () => {
   const navLinks = [
     { href: "/", label: "Home" },
     { href: "/rent-bikes", label: "Rent A Bike" },
-    { href: "/reviews", label: "Reviews" },
-    { href: "/faq", label: "FAQs" },
-    { href: "/contact", label: "Contact" },
+    // { href: "/reviews", label: "Reviews" },
+    { href: "/about", label: "About Us" },
+    { href: "/contact-us", label: "Contact" },
   ];
 
   return (
@@ -35,7 +35,7 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation Links */}
-          {/* <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
@@ -49,10 +49,10 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-          </div> */}
+          </div>
 
           {/* Desktop Right Icons */}
-          {/* <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4">
             <button
               className="p-2 text-gray-600 hover:text-gray-900"
               aria-label="Search"
@@ -71,10 +71,10 @@ const Navbar = () => {
             >
               <ShoppingBag size={20} />
             </button>
-          </div> */}
+          </div>
 
           {/* Mobile Menu Button */}
-          {/* <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center space-x-2">
             <button
               className="p-2 text-gray-600 hover:text-gray-900"
               aria-label="Search"
@@ -100,7 +100,7 @@ const Navbar = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-          </div> */}
+          </div>
         </div>
 
         {/* Mobile Navigation Menu with transition */}
