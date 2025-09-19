@@ -1,0 +1,18 @@
+.form_wrapper {
+  width: 80%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  margin: 8% auto 0;
+  position: relative;
+  z-index: 1;
+  margin-bottom: 10%;
+  border-bottom: 5px solid #f5ba1a;
+  opacity: 1;
+}
+
+.terms {
+  color:black;
+  padding-top: 1rem;
+  white-space: pre-wrap;
+}
