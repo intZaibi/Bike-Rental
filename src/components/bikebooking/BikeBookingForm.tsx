@@ -1,14 +1,33 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
-import { ChevronLeft, CircleAlert, ChevronRight, Lightbulb, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb } from "lucide-react";
 import Link from "next/link";
-import Breadcrumb from "../BreadCrumb";
-import DateInput from "@/lib/DateInput/DateInput"
-import { getDaysBetweenDates } from "@/utilities/getDaysBetween";
-import AddressForm from "@/lib/AddressForm/AddressForm";
-import Checkout from "@/lib/Checkout/Checkout";
+import Image from "next/image";
+// Mock Breadcrumb component
+const Breadcrumb = ({
+  items,
+}: {
+  items: Array<{ label: string; href?: string }>;
+}) => (
+  <nav className="mb-6">
+    <ol className="flex items-center space-x-2 text-sm">
+      {items.map((item, index) => (
+        <li key={index} className="flex items-center">
+          {index > 0 && <span className="mx-2 text-gray-400">/</span>}
+          {item.href ? (
+            <a href={item.href} className="text-gray-600 hover:text-black">
+              {item.label}
+            </a>
+          ) : (
+            <span className="text-black font-medium">{item.label}</span>
+          )}
+        </li>
+      ))}
+    </ol>
+  </nav>
+);
+
 // Interfaces
 interface BikeDetail {
   id: string;
@@ -30,9 +49,7 @@ interface DeliveryOption {
   name: string;
   description: string;
   price: number;
-  disabled: boolean;
   isFree?: boolean;
-  subDescription: string;
 }
 
 interface RentalSummary {
@@ -47,23 +64,65 @@ interface RentalSummary {
   total: number;
 }
 
+interface PreSelectedDuration {
+  days: number;
+  label: string;
+}
+
 const BikeBookingForm: React.FC = () => {
-  // Sample bike data
- 
   const bikeData: BikeDetail = {
     id: "yamaha-fz-x",
-    name: "Everyday Purpose E-Bike",
-    image: "/bike.png",
-    description: "E-Bike For Commuting To Work, School, Running Errands and Social Events.",
-    basePrice: 5,
-    
+    name: "Yamaha FZ X",
+    image:
+      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop",
+    description: "Smooth, Powerful & Perfect for City Cruising",
+    basePrice: 50,
   };
 
-  // State management
-  const [errorMap, setErrorMap] = useState<{[key: string]: boolean}>({});
-  const [startDate, setStartDate] = useState("09/07/2025");
-  const [endDate, setEndDate] = useState("11/07/2025");
+  const preSelectedDurations: PreSelectedDuration[] = [
+    { days: 5, label: "5 Days" },
+    { days: 10, label: "10 Days" },
+    { days: 15, label: "15 Days" },
+    { days: 20, label: "20 Days" },
+  ];
+
+  const deliveryOptions: DeliveryOption[] = [
+    {
+      id: "home",
+      name: "Home Delivery",
+      description: "We will deliver your bike right to your door step",
+      price: 20,
+      isFree: false,
+    },
+    {
+      id: "pickup",
+      name: "Self Pickup",
+      description: "Collect your bike from our nearest rental hub",
+      price: 0,
+      isFree: true,
+    },
+  ];
+
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Bikes", href: "/rent-bikes" },
+    { label: "Yamaha XYZ", href: "/bike" },
+    { label: "Booking" },
+  ];
+
+  // State
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    return formatDate(today);
+  });
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    today.setDate(today.getDate() + 4); // Default 5 days
+    return formatDate(today);
+  });
   const [selectedDelivery, setSelectedDelivery] = useState("home");
+  const [selectedPresetDuration, setSelectedPresetDuration] =
+    useState<number>(5); // Default 5 days
   const [addOns, setAddOns] = useState<AddOn[]>([
     { id: "helmet", name: "Helmet", price: 20, selected: true },
     { id: "phone-holder", name: "Phone Holder", price: 20, selected: false },
@@ -77,55 +136,325 @@ const BikeBookingForm: React.FC = () => {
     { id: "gloves", name: "Riding Gloves", price: 20, selected: false },
   ]);
 
-  // Calendar state
-  const [selectedDates, setSelectedDates] = useState<number[]>([9, 10, 11]);
+  // Calendar
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDateRange, setSelectedDateRange] = useState<Date[]>([]);
 
-  // Delivery options
-  const deliveryOptions: DeliveryOption[] = [
-    {
-      id: "home",
-      name: "Home Delivery",
-      description: "We deliver the bike right to your door step",
-      subDescription: "ETA can vary with truck availability, demand spikes, or road delays.",
-      price: 0,
-      disabled: false,
-      isFree: true,
-    },
-    {
-      id: "pickup",
-      name: "Self Pickup (Not Available)",
-      description: "Collect your bike from our nearest rental hub",
-      subDescription: "",
-      price: 0,
-      disabled: true,
-      isFree: false,
-    },
+  // Date picker for start date
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [startDatePickerMonth, setStartDatePickerMonth] = useState(new Date());
+
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
-  const breadcrumbItems: any[] = [
-    // { label: "Home", href: "/" },
-    // { label: "Bikes", href: "/rent-bikes" },
-    // { label: "Yamaha XYZ", href: "/bike" },
-    // { label: "Booking" }, // last one, no href
-  ];
+  function formatDate(date: Date): string {
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
-  // Calculate rental summary
+  function parseDate(dateString: string): Date {
+    const [day, month, year] = dateString.split("/").map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  // Calculate date range based on start date and duration
+  const calculateDateRange = (
+    startDateStr: string,
+    duration: number
+  ): Date[] => {
+    const startDateObj = parseDate(startDateStr);
+    const dateRange: Date[] = [];
+
+    for (let i = 0; i < duration; i++) {
+      const currentDate = new Date(startDateObj);
+      currentDate.setDate(startDateObj.getDate() + i);
+      dateRange.push(currentDate);
+    }
+
+    return dateRange;
+  };
+
+  // Update date range whenever startDate or selectedPresetDuration changes
+  useEffect(() => {
+    if (selectedPresetDuration) {
+      const range = calculateDateRange(startDate, selectedPresetDuration);
+      setSelectedDateRange(range);
+
+      // Update end date
+      const lastDate = range[range.length - 1];
+      setEndDate(formatDate(lastDate));
+
+      // Auto change month if needed to show the date range
+      const startDateObj = parseDate(startDate);
+      const endDateObj = lastDate;
+
+      if (
+        endDateObj.getMonth() !== currentMonth.getMonth() ||
+        endDateObj.getFullYear() !== currentMonth.getFullYear()
+      ) {
+        // If end date is in different month, show the month with more dates
+        const startMonthDays = range.filter(
+          (date) =>
+            date.getMonth() === startDateObj.getMonth() &&
+            date.getFullYear() === startDateObj.getFullYear()
+        ).length;
+
+        const endMonthDays = range.filter(
+          (date) =>
+            date.getMonth() === endDateObj.getMonth() &&
+            date.getFullYear() === endDateObj.getFullYear()
+        ).length;
+
+        if (endMonthDays >= startMonthDays) {
+          setCurrentMonth(
+            new Date(endDateObj.getFullYear(), endDateObj.getMonth())
+          );
+        }
+      }
+    }
+  }, [startDate, selectedPresetDuration]);
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest(".date-picker-container")) {
+        setShowStartDatePicker(false);
+      }
+    };
+
+    if (showStartDatePicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showStartDatePicker]);
+
+  // Handle preset duration selection
+  const handlePresetDurationSelect = (days: number) => {
+    setSelectedPresetDuration(days);
+    // The useEffect will handle the rest
+  };
+
+  const handleDateInputChange = (value: string, isStartDate: boolean) => {
+    // Validate date format
+    if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return;
+
+    const [day, month, year] = value.split("/").map(Number);
+
+    // Validate date values
+    if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2024) return;
+
+    const inputDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Don't allow past dates
+    if (inputDate < today) return;
+
+    if (isStartDate) {
+      setStartDate(value);
+      // The useEffect will handle updating the range and end date
+    } else {
+      // If user changes end date manually, calculate duration
+      const startDateObj = parseDate(startDate);
+      const endDateObj = parseDate(value);
+
+      if (endDateObj >= startDateObj) {
+        setEndDate(value);
+        const diffTime = endDateObj.getTime() - startDateObj.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        setSelectedPresetDuration(diffDays);
+      }
+    }
+  };
+
+  const toggleAddOn = (addOnId: string) => {
+    setAddOns((prev) =>
+      prev.map((a) => (a.id === addOnId ? { ...a, selected: !a.selected } : a))
+    );
+  };
+
+  const prevMonth = () =>
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
+    );
+  const nextMonth = () =>
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
+    );
+
+  // Date picker functions
+  const prevStartDateMonth = () =>
+    setStartDatePickerMonth(
+      new Date(
+        startDatePickerMonth.getFullYear(),
+        startDatePickerMonth.getMonth() - 1
+      )
+    );
+  const nextStartDateMonth = () =>
+    setStartDatePickerMonth(
+      new Date(
+        startDatePickerMonth.getFullYear(),
+        startDatePickerMonth.getMonth() + 1
+      )
+    );
+
+  const handleStartDatePickerSelect = (day: number) => {
+    const selectedDate = new Date(
+      startDatePickerMonth.getFullYear(),
+      startDatePickerMonth.getMonth(),
+      day
+    );
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) return;
+
+    setStartDate(formatDate(selectedDate));
+    setShowStartDatePicker(false);
+  };
+
+  const renderStartDatePicker = () => {
+    const daysInMonth = getDaysInMonth(startDatePickerMonth);
+    const firstDay = getFirstDayOfMonth(startDatePickerMonth);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = [];
+
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(
+        startDatePickerMonth.getFullYear(),
+        startDatePickerMonth.getMonth(),
+        day
+      );
+      const isPast = currentDate < today;
+      const isSelected =
+        parseDate(startDate).getTime() === currentDate.getTime();
+
+      days.push(
+        <button
+          key={day}
+          disabled={isPast}
+          onClick={() => handleStartDatePickerSelect(day)}
+          className={`w-8 h-8 text-sm font-medium rounded transition-all ${
+            isPast
+              ? "text-gray-300 cursor-not-allowed"
+              : isSelected
+              ? "bg-black text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          {day}
+        </button>
+      );
+    }
+    return days;
+  };
+
+  const getDaysInMonth = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getFirstDayOfMonth = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+  const toggleDateSelection = (day: number) => {
+    const today = new Date();
+    const selectedDate = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      day
+    );
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) return;
+
+    // Update start date
+    setStartDate(formatDate(selectedDate));
+    // The useEffect will handle the rest
+  };
+
+  const isDateInRange = (day: number): boolean => {
+    const currentDate = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      day
+    );
+    return selectedDateRange.some(
+      (rangeDate) =>
+        rangeDate.getDate() === day &&
+        rangeDate.getMonth() === currentMonth.getMonth() &&
+        rangeDate.getFullYear() === currentMonth.getFullYear()
+    );
+  };
+
+  const renderCalendar = () => {
+    const daysInMonth = getDaysInMonth(currentMonth);
+    const firstDay = getFirstDayOfMonth(currentMonth);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const days = [];
+
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isSelected = isDateInRange(day);
+      const currentDate = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        day
+      );
+      const isPast = currentDate < today;
+
+      days.push(
+        <button
+          key={day}
+          disabled={isPast}
+          onClick={() => toggleDateSelection(day)}
+          className={`w-8 h-8 text-sm font-medium rounded transition-all ${
+            isPast
+              ? "text-gray-300 cursor-not-allowed"
+              : isSelected
+              ? "bg-black text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          {day}
+        </button>
+      );
+    }
+    return days;
+  };
+
+  // Rental summary calculation
   const calculateSummary = (): RentalSummary => {
-    const days = getDaysBetweenDates(startDate, endDate);
-    console.log(days)
+    const days = selectedPresetDuration || 1;
     const bikeRental = bikeData.basePrice * days;
     const selectedDeliveryOption = deliveryOptions.find(
       (opt) => opt.id === selectedDelivery
     );
     const deliveryPrice = selectedDeliveryOption?.price || 0;
-    const selectedAddOns = addOns.filter((addon) => addon.selected);
-    const addOnsTotal = selectedAddOns.reduce(
-      (sum, addon) => sum + addon.price,
-      0
-    );
-    const helmet = 0;
-      // addOns.find((addon) => addon.id === "helmet" && addon.selected)?.price ||
-      // 0;
+    const selectedAddOns = addOns.filter((a) => a.selected);
+    const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
+    const helmet =
+      addOns.find((a) => a.id === "helmet" && a.selected)?.price || 0;
     const homeDelivery = selectedDelivery === "home" ? deliveryPrice : 0;
 
     return {
@@ -137,124 +466,213 @@ const BikeBookingForm: React.FC = () => {
       addOns: addOnsTotal,
       helmet,
       homeDelivery,
-      total: bikeRental //+ deliveryPrice + addOnsTotal,
+      total: bikeRental + deliveryPrice + addOnsTotal,
     };
   };
 
   const summary = calculateSummary();
 
-  const hasError = Object.keys(errorMap).length > 0;
-
-  const errorFunction = (value: boolean, name: string) => {
-    setErrorMap(prev => {
-      if(value)
-      {
-        return {
-          ...prev,
-          [name]: true
-        }
-      } else {
-        const newMap = {...prev};
-        delete newMap[name]
-        return newMap
-      }
-    })
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-[90%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Breadcrumb items={breadcrumbItems} />
+        {/* <Breadcrumb items={breadcrumbItems} /> */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Content - Main Form */}
+          {/* Left Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Header */}
             <div>
               <h1 className="text-3xl sm:text-5xl font-semibold text-black mb-3 sm:mb-4">
-                Your Ride, Your Way
+                Customize Your Ride, Your Way
               </h1>
               <p className="text-sm sm:text-base text-gray-600">
-                Set your rental duration and pick your delivery option. 
-                
-                {/* and select
-                add-ons to suit your adventure. Transparent pricing, no
-                surprises. */}
-              </p>
-              <p style={{textAlign: 'center', marginTop: '2rem', fontSize: '13px'}}className="flex gap-2 text-gray-600">
-                <Info /> Please Acknowledge That Currently We Only Have E-Bikes From Concord, Lectric and Nishiki.
-                
-                {/* and select
-                add-ons to suit your adventure. Transparent pricing, no
-                surprises. */}
+                Set your rental duration, pick your delivery option, and select
+                add-ons to suit your adventure.
               </p>
             </div>
 
-            {/* Rental Duration */}
+            {/* Duration selection */}
             <div className="p-4 sm:p-0">
               <h2 className="text-lg sm:text-xl font-bold text-black mb-4 sm:mb-6">
                 How long do you need the bike for?
               </h2>
+              <div className="flex flex-wrap gap-3 sm:gap-4 mb-6">
+                {preSelectedDurations.map((d) => (
+                  <div
+                    key={d.days}
+                    onClick={() => handlePresetDurationSelect(d.days)}
+                    className={`flex-shrink-0 border-2 rounded-xl px-3 sm:px-4 py-2 sm:py-3 cursor-pointer transition-all flex items-center gap-2 ${
+                      selectedPresetDuration === d.days
+                        ? "border-green-500 bg-green-50"
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                    }`}
+                  >
+                    {/* Dot */}
+                    <div
+                      className={`w-4 sm:w-5 h-4 sm:h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedPresetDuration === d.days
+                          ? "border-green-500 bg-green-500"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      {selectedPresetDuration === d.days && (
+                        <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full" />
+                      )}
+                    </div>
 
+                    {/* Label */}
+                    <h3 className="font-bold text-sm sm:text-base text-black">
+                      {d.label}
+                    </h3>
+                  </div>
+                ))}
+              </div>
+
+              {/* Start/End date input */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6">
+                <div className="relative date-picker-container">
+                  <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
+                    Start Date
+                  </label>
+                  <div className="relative bg-white">
+                    <input
+                      type="text"
+                      value={startDate}
+                      onChange={(e) =>
+                        handleDateInputChange(e.target.value, true)
+                      }
+                      onClick={() => {
+                        setShowStartDatePicker(!showStartDatePicker);
+                        setStartDatePickerMonth(
+                          parseDate(startDate) || new Date()
+                        );
+                      }}
+                      className="w-full px-2 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base cursor-pointer"
+                      placeholder="DD/MM/YYYY"
+                      readOnly
+                    />
+                    <Calendar
+                      className="absolute right-3 top-2.5 sm:top-3 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 cursor-pointer"
+                      onClick={() => {
+                        setShowStartDatePicker(!showStartDatePicker);
+                        setStartDatePickerMonth(
+                          parseDate(startDate) || new Date()
+                        );
+                      }}
+                    />
+                  </div>
 
-                <DateInput 
-                name={'Start Date'}
-                errorFunction={errorFunction}
-                onChange={(e) => setStartDate(e)} notBefore={{
-                  date: (new Date()).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                  }),
-                  name: 'Today'
-                }} errorMsg={'Hello World'} />
-
-                <DateInput 
-                name={'End Date'}
-                errorFunction={errorFunction}
-                onChange={(e) => setEndDate(e)} notBefore={{
-                  date: startDate,
-                  name: "Start Date"
-                }} errorMsg={'Hello World'} />
+                  {/* Start Date Picker Dropdown */}
+                  {showStartDatePicker && (
+                    <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-2xl p-4 shadow-lg mt-2">
+                      <div className="flex items-center justify-between mb-4">
+                        <button
+                          onClick={prevStartDateMonth}
+                          className="p-2 hover:bg-gray-200 rounded-lg"
+                          type="button"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <h3 className="font-semibold text-black text-sm">
+                          {monthNames[startDatePickerMonth.getMonth()]}{" "}
+                          {startDatePickerMonth.getFullYear()}
+                        </h3>
+                        <button
+                          onClick={nextStartDateMonth}
+                          className="p-2 hover:bg-gray-200 rounded-lg"
+                          type="button"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-7 gap-1 mb-2">
+                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                          (d) => (
+                            <div
+                              key={d}
+                              className="text-center text-xs font-medium text-gray-600 py-2"
+                            >
+                              {d}
+                            </div>
+                          )
+                        )}
+                      </div>
+                      <div className="grid grid-cols-7 gap-1">
+                        {renderStartDatePicker()}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
+                    End Date
+                  </label>
+                  <div className="relative bg-white">
+                    <input
+                      type="text"
+                      value={endDate}
+                      onChange={(e) =>
+                        handleDateInputChange(e.target.value, false)
+                      }
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+                      placeholder="DD/MM/YYYY"
+                    />
+                    <Calendar className="absolute right-3 top-2.5 sm:top-3 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
+                  </div>
+                </div>
               </div>
 
               {/* Calendar */}
-              {/* <Calendar/> */}
-
-              {/* <p className="text-xs sm:text-sm text-gray-600 mt-3 sm:mt-4 flex items-center">
-                <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
-                You can rent for a few hours or several days—flexible as your
-                plan!
-              </p> */}
+              <div className="bg-white border border-gray-200 rounded-2xl p-2 sm:p-4">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <button
+                    onClick={prevMonth}
+                    className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg"
+                  >
+                    <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
+                  </button>
+                  <h3 className="font-semibold text-black text-sm sm:text-base">
+                    {monthNames[currentMonth.getMonth()]}{" "}
+                    {currentMonth.getFullYear()}
+                  </h3>
+                  <button
+                    onClick={nextMonth}
+                    className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg"
+                  >
+                    <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 gap-1 mb-2">
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (d) => (
+                      <div
+                        key={d}
+                        className="text-center text-[10px] sm:text-sm font-medium text-gray-600 py-1.5 sm:py-2"
+                      >
+                        {d}
+                      </div>
+                    )
+                  )}
+                </div>
+                <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
+              </div>
             </div>
 
             {/* Delivery Options */}
             <div className="max-w-4xl mx-auto">
               <div className="p-4 sm:p-0">
                 <h2 className="text-xl sm:text-2xl font-bold text-black mb-6 sm:mb-8">
-                  Delivery Option
+                  Delivery Made Easy
                 </h2>
 
                 <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
                   {deliveryOptions.map((option) => (
                     <div
                       key={option.id}
-                      onClick={() => {
-                        if(!option.disabled)
-                        {
-                          setSelectedDelivery(option.id)
-                        }
-                      }}
-                      style={{
-                        opacity: option.disabled === true ? '0.6' : '1' 
-                      }}
-                      className={`flex-1 border-2 rounded-2xl p-3 sm:p-4 transition-all ${
+                      onClick={() => setSelectedDelivery(option.id)}
+                      className={`flex-1 border-2 rounded-2xl p-3 sm:p-4 cursor-pointer transition-all ${
                         selectedDelivery === option.id
                           ? "border-green-500"
                           : "border-gray-200 hover:border-gray-300"
-                        }
-                        ${option.disabled === true ? '' : 'cursor-pointer' }
-                      `}
+                      }`}
                     >
                       <div className="flex items-start justify-between mb-3 sm:mb-4">
                         <div
@@ -268,7 +686,7 @@ const BikeBookingForm: React.FC = () => {
                             <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full"></div>
                           )}
                         </div>
-                        {option.disabled === false && <div className="text-right">
+                        <div className="text-right">
                           {option.isFree ? (
                             <span className="text-green-600 font-bold text-sm sm:text-lg">
                               FREE
@@ -278,7 +696,7 @@ const BikeBookingForm: React.FC = () => {
                               ${option.price} Extra
                             </span>
                           )}
-                        </div>}
+                        </div>
                       </div>
 
                       <div>
@@ -288,9 +706,6 @@ const BikeBookingForm: React.FC = () => {
                         <p className="text-xs sm:text-base text-gray-600">
                           {option.description}
                         </p>
-                        <p className="text-xs mt-2 sm:text-base text-gray-600" style={{fontSize: '11px'}}>
-                          {option.subDescription}
-                        </p>
                       </div>
                     </div>
                   ))}
@@ -299,7 +714,7 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* Add-ons */}
-            {/* <div className="w-full mx-auto p-4 sm:p-0">
+            <div className="w-full mx-auto p-4 sm:p-0">
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">
                 Enhance Your Ride
               </h2>
@@ -345,10 +760,10 @@ const BikeBookingForm: React.FC = () => {
                   you do not.
                 </p>
               </div>
-            </div> */}
-            <AddressForm errorFunction={errorFunction}/>
+            </div>
           </div>
-            
+
+          {/* Right Sidebar */}
           {/* Right Sidebar - Rental Summary */}
           <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border h-fit sticky top-8">
             <h2 className="text-base sm:text-lg lg:text-2xl font-bold text-black mb-4 sm:mb-6">
@@ -359,7 +774,7 @@ const BikeBookingForm: React.FC = () => {
             <div className="flex space-x-3 sm:space-x-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
               <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-lg overflow-hidden bg-gray-100">
                 <Image
-                  src={bikeData.image}
+                  src="/z6.jpg"
                   alt={bikeData.name}
                   width={64}
                   height={64}
@@ -377,95 +792,51 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* Rental Details */}
-            <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
-              {/* <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-gray-600">Rental Dates:</span>
+            <div className="space-y-3 sm:space-y-4 mb-6">
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">Start Date</span>
                 <span className="font-medium text-black">
-                  Jul {selectedDates[0]} - Jul{" "}
-                  {selectedDates[selectedDates.length - 1]} ({summary.days}{" "}
-                  days)
-                </span>
-              </div> */}
-
-              <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-gray-600">Delivery Option:</span>
-                <span className="font-medium text-black">
-                  {
-                    deliveryOptions.find((opt) => opt.id === selectedDelivery)
-                      ?.name
-                  } (FREE)
+                  {summary.startDate}
                 </span>
               </div>
-
-              {/* <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-gray-600">Add-ons:</span>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">End Date</span>
                 <span className="font-medium text-black">
-                  {addOns
-                    .filter((addon) => addon.selected)
-                    .map((addon) => addon.name)
-                    .join(", ") || "None"}
+                  {summary.endDate}
                 </span>
-              </div> */}
+              </div>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">Total Days</span>
+                <span className="font-medium text-black">{summary.days}</span>
+              </div>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">Bike Rental</span>
+                <span className="font-medium text-black">
+                  ${summary.bikeRental}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">Delivery</span>
+                <span className="font-medium text-black">
+                  {summary.deliveryOption > 0
+                    ? `$${summary.deliveryOption}`
+                    : "FREE"}
+                </span>
+              </div>
+              <div className="flex justify-between text-sm sm:text-base">
+                <span className="text-gray-600">Add-ons</span>
+                <span className="font-medium text-black">
+                  ${summary.addOns}
+                </span>
+              </div>
             </div>
 
-
-            {/* Price Breakdown */}
-            <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200 text-xs sm:text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">
-                  Everyday Purpose E-Bike Rate:
-                </span>
-                <span className="font-medium text-black">
-                  $5/day
-                </span>
+            {/* Total Price */}
+            <div className="pt-4 border-t border-gray-200">
+              <div className="flex justify-between text-base sm:text-lg font-bold text-black">
+                <span>Total</span>
+                <span>${summary.total}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">
-                  Bike Rental {isNaN(summary.days) ? '(0 days)': `(${summary.days} days)`}:
-                </span>
-                <span className="font-medium text-black">
-                  {isNaN(summary.bikeRental) ? '$0.00': `${summary.bikeRental}.00`}
-                </span>
-              </div>
-
-              {summary.helmet > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Helmet:</span>
-                  <span className="font-medium text-black">
-                    ${summary.helmet}.00
-                  </span>
-                </div>
-              )}
-
-              {addOns
-                .filter((addon) => addon.selected && addon.id !== "helmet")
-                .map((addon) => (
-                  <div key={addon.id} className="flex justify-between">
-                    <span className="text-gray-600">{addon.name}:</span>
-                    <span className="font-medium text-black">
-                      ${addon.price}.00
-                    </span>
-                  </div>
-                ))}
-
-              {summary.homeDelivery > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Home Delivery:</span>
-                  <span className="font-medium text-black">
-                    ${summary.homeDelivery}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Total */}
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <span className="text-lg sm:text-xl font-bold text-black">
-                Total
-              </span>
-              <span className="text-xl sm:text-2xl font-bold text-black">
-                {isNaN(summary.total) ? '$0.00': `${summary.total}.00`}
-              </span>
             </div>
 
             {/* No Hidden Fees Notice */}
@@ -473,26 +844,18 @@ const BikeBookingForm: React.FC = () => {
               <div className="flex items-start space-x-2">
                 <Lightbulb className="w-3 sm:w-4 h-3 sm:h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-yellow-800">
-                  You'll Only Be Charged Once The Bike Is Delivered
+                  No hidden fees. Pay only for what you use.
                 </p>
               </div>
             </div>
 
             {/* Checkout Button */}
-            <Link  href="/track-order">
-              <button 
-                disabled={hasError} 
-                style={{
-                  opacity: (hasError) ? '0.6' : '1'
-                }} 
-                className="w-full bg-black text-white py-2.5 sm:py-3 
-                rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-                  Schedule Rental
+            <Link href="/track-order">
+              <button className="w-full bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+                Continue Checkout
               </button>
             </Link>
           </div>
-
-          {/* <Checkout/> */}
         </div>
       </div>
     </div>
