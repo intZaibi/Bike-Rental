@@ -116,11 +116,11 @@ const BikeBookingForm: React.FC = () => {
   });
   const [endDate, setEndDate] = useState(() => {
     const today = new Date();
-    today.setDate(today.getDate() + 0); 
+    today.setDate(today.getDate() + 4); 
     return formatDate(today);
   });
   const [selectedDelivery, setSelectedDelivery] = useState("home");
- const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(0); 
+ const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(5); 
 
   const [addOns, setAddOns] = useState<AddOn[]>([
     { id: "helmet", name: "Helmet", price: 20, selected: true },
@@ -562,7 +562,7 @@ const BikeBookingForm: React.FC = () => {
                 ))}
                 
                 {/* Custom Duration Indicator */}
-                {selectedPresetDuration === null && (
+                {/* {selectedPresetDuration === null && (
                   <div className="flex-shrink-0 border-2 border-green-500 bg-green-50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
                     <div className="w-4 sm:w-5 h-4 sm:h-5 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center">
                       <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full" />
@@ -571,7 +571,7 @@ const BikeBookingForm: React.FC = () => {
                       Custom ({summary.days} Days)
                     </h3>
                   </div>
-                )}
+                )} */}
               </div>
 
               {/* Start/End date input */}
