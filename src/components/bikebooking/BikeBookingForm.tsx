@@ -1,9 +1,9 @@
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Lightbulb } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
+
 // Mock Breadcrumb component
 const Breadcrumb = ({
   items,
@@ -73,8 +73,7 @@ const BikeBookingForm: React.FC = () => {
   const bikeData: BikeDetail = {
     id: "yamaha-fz-x",
     name: "Yamaha FZ X",
-    image:
-      "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop",
+    image: "https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&h=300&fit=crop",
     description: "Smooth, Powerful & Perfect for City Cruising",
     basePrice: 50,
   };
@@ -117,22 +116,17 @@ const BikeBookingForm: React.FC = () => {
   });
   const [endDate, setEndDate] = useState(() => {
     const today = new Date();
-    today.setDate(today.getDate() + 4); // Default 5 days
+    today.setDate(today.getDate() + 0); 
     return formatDate(today);
   });
   const [selectedDelivery, setSelectedDelivery] = useState("home");
-  const [selectedPresetDuration, setSelectedPresetDuration] =
-    useState<number>(5); // Default 5 days
+ const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(0); 
+
   const [addOns, setAddOns] = useState<AddOn[]>([
     { id: "helmet", name: "Helmet", price: 20, selected: true },
     { id: "phone-holder", name: "Phone Holder", price: 20, selected: false },
     { id: "lock", name: "Lock", price: 20, selected: false },
-    {
-      id: "battery-pack",
-      name: "Extra Battery Pack",
-      price: 20,
-      selected: false,
-    },
+    { id: "battery-pack", name: "Extra Battery Pack", price: 20, selected: false },
     { id: "gloves", name: "Riding Gloves", price: 20, selected: false },
   ]);
 
@@ -140,123 +134,124 @@ const BikeBookingForm: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDateRange, setSelectedDateRange] = useState<Date[]>([]);
 
-  // Date picker for start date
+  // Date pickers
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [startDatePickerMonth, setStartDatePickerMonth] = useState(new Date());
+  const [endDatePickerMonth, setEndDatePickerMonth] = useState(new Date());
 
   const monthNames = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
   ];
 
+  // Format date to MM/DD/YYYY
   function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, "0");
     const month = (date.getMonth() + 1).toString().padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
+    return `${month}/${day}/${year}`;
   }
 
+  // Parse date from MM/DD/YYYY
   function parseDate(dateString: string): Date {
-    const [day, month, year] = dateString.split("/").map(Number);
+    const [month, day, year] = dateString.split("/").map(Number);
     return new Date(year, month - 1, day);
   }
 
-  // Calculate date range based on start date and duration
-  const calculateDateRange = (
-    startDateStr: string,
-    duration: number
-  ): Date[] => {
+  // Calculate date range between start and end dates
+  const calculateDateRange = (startDateStr: string, endDateStr: string): Date[] => {
     const startDateObj = parseDate(startDateStr);
+    const endDateObj = parseDate(endDateStr);
     const dateRange: Date[] = [];
 
-    for (let i = 0; i < duration; i++) {
-      const currentDate = new Date(startDateObj);
-      currentDate.setDate(startDateObj.getDate() + i);
-      dateRange.push(currentDate);
+    const currentDate = new Date(startDateObj);
+    while (currentDate <= endDateObj) {
+      dateRange.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     return dateRange;
   };
 
-  // Update date range whenever startDate or selectedPresetDuration changes
+  // Calculate days between two dates
+  const calculateDaysBetween = (startDateStr: string, endDateStr: string): number => {
+    const startDateObj = parseDate(startDateStr);
+    const endDateObj = parseDate(endDateStr);
+    const diffTime = endDateObj.getTime() - startDateObj.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  };
+
+  // Update date range whenever startDate or endDate changes
   useEffect(() => {
-    if (selectedPresetDuration) {
-      const range = calculateDateRange(startDate, selectedPresetDuration);
-      setSelectedDateRange(range);
+    const range = calculateDateRange(startDate, endDate);
+    setSelectedDateRange(range);
 
-      // Update end date
-      const lastDate = range[range.length - 1];
-      setEndDate(formatDate(lastDate));
+    // Check if current selection matches any preset duration
+    const days = calculateDaysBetween(startDate, endDate);
+    const matchingPreset = preSelectedDurations.find(p => p.days === days);
+    setSelectedPresetDuration(matchingPreset ? matchingPreset.days : null);
 
-      // Auto change month if needed to show the date range
-      const startDateObj = parseDate(startDate);
-      const endDateObj = lastDate;
+    // Auto change month if needed to show the date range
+    const startDateObj = parseDate(startDate);
+    const endDateObj = parseDate(endDate);
 
-      if (
-        endDateObj.getMonth() !== currentMonth.getMonth() ||
-        endDateObj.getFullYear() !== currentMonth.getFullYear()
-      ) {
-        // If end date is in different month, show the month with more dates
-        const startMonthDays = range.filter(
-          (date) =>
-            date.getMonth() === startDateObj.getMonth() &&
-            date.getFullYear() === startDateObj.getFullYear()
-        ).length;
+    if (
+      endDateObj.getMonth() !== currentMonth.getMonth() ||
+      endDateObj.getFullYear() !== currentMonth.getFullYear()
+    ) {
+      const startMonthDays = range.filter(
+        (date) =>
+          date.getMonth() === startDateObj.getMonth() &&
+          date.getFullYear() === startDateObj.getFullYear()
+      ).length;
 
-        const endMonthDays = range.filter(
-          (date) =>
-            date.getMonth() === endDateObj.getMonth() &&
-            date.getFullYear() === endDateObj.getFullYear()
-        ).length;
+      const endMonthDays = range.filter(
+        (date) =>
+          date.getMonth() === endDateObj.getMonth() &&
+          date.getFullYear() === endDateObj.getFullYear()
+      ).length;
 
-        if (endMonthDays >= startMonthDays) {
-          setCurrentMonth(
-            new Date(endDateObj.getFullYear(), endDateObj.getMonth())
-          );
-        }
+      if (endMonthDays >= startMonthDays) {
+        setCurrentMonth(new Date(endDateObj.getFullYear(), endDateObj.getMonth()));
       }
     }
-  }, [startDate, selectedPresetDuration]);
+  }, [startDate, endDate]);
 
-  // Close date picker when clicking outside
+  // Close date pickers when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Element;
       if (!target.closest(".date-picker-container")) {
         setShowStartDatePicker(false);
+        setShowEndDatePicker(false);
       }
     };
 
-    if (showStartDatePicker) {
+    if (showStartDatePicker || showEndDatePicker) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showStartDatePicker]);
+  }, [showStartDatePicker, showEndDatePicker]);
 
   // Handle preset duration selection
   const handlePresetDurationSelect = (days: number) => {
+    const startDateObj = parseDate(startDate);
+    const newEndDate = new Date(startDateObj);
+    newEndDate.setDate(startDateObj.getDate() + days - 1);
+    
+    setEndDate(formatDate(newEndDate));
     setSelectedPresetDuration(days);
-    // The useEffect will handle the rest
   };
 
   const handleDateInputChange = (value: string, isStartDate: boolean) => {
-    // Validate date format
+    // Validate date format MM/DD/YYYY
     if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return;
 
-    const [day, month, year] = value.split("/").map(Number);
+    const [month, day, year] = value.split("/").map(Number);
 
     // Validate date values
     if (day < 1 || day > 31 || month < 1 || month > 12 || year < 2024) return;
@@ -270,17 +265,19 @@ const BikeBookingForm: React.FC = () => {
 
     if (isStartDate) {
       setStartDate(value);
-      // The useEffect will handle updating the range and end date
+      
+      // If new start date is after current end date, adjust end date
+      const currentEndDate = parseDate(endDate);
+      if (inputDate >= currentEndDate) {
+        const newEndDate = new Date(inputDate);
+        newEndDate.setDate(inputDate.getDate() + 1);
+        setEndDate(formatDate(newEndDate));
+      }
     } else {
-      // If user changes end date manually, calculate duration
-      const startDateObj = parseDate(startDate);
-      const endDateObj = parseDate(value);
-
-      if (endDateObj >= startDateObj) {
+      // Validate that end date is after start date
+      const currentStartDate = parseDate(startDate);
+      if (inputDate > currentStartDate) {
         setEndDate(value);
-        const diffTime = endDateObj.getTime() - startDateObj.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        setSelectedPresetDuration(diffDays);
       }
     }
   };
@@ -292,28 +289,27 @@ const BikeBookingForm: React.FC = () => {
   };
 
   const prevMonth = () =>
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1)
-    );
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
   const nextMonth = () =>
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1)
-    );
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
 
   // Date picker functions
   const prevStartDateMonth = () =>
     setStartDatePickerMonth(
-      new Date(
-        startDatePickerMonth.getFullYear(),
-        startDatePickerMonth.getMonth() - 1
-      )
+      new Date(startDatePickerMonth.getFullYear(), startDatePickerMonth.getMonth() - 1)
     );
   const nextStartDateMonth = () =>
     setStartDatePickerMonth(
-      new Date(
-        startDatePickerMonth.getFullYear(),
-        startDatePickerMonth.getMonth() + 1
-      )
+      new Date(startDatePickerMonth.getFullYear(), startDatePickerMonth.getMonth() + 1)
+    );
+
+  const prevEndDateMonth = () =>
+    setEndDatePickerMonth(
+      new Date(endDatePickerMonth.getFullYear(), endDatePickerMonth.getMonth() - 1)
+    );
+  const nextEndDateMonth = () =>
+    setEndDatePickerMonth(
+      new Date(endDatePickerMonth.getFullYear(), endDatePickerMonth.getMonth() + 1)
     );
 
   const handleStartDatePickerSelect = (day: number) => {
@@ -327,13 +323,45 @@ const BikeBookingForm: React.FC = () => {
 
     if (selectedDate < today) return;
 
-    setStartDate(formatDate(selectedDate));
+    const newStartDate = formatDate(selectedDate);
+    setStartDate(newStartDate);
+    
+    // If new start date is after current end date, adjust end date
+    const currentEndDate = parseDate(endDate);
+    if (selectedDate >= currentEndDate) {
+      const newEndDate = new Date(selectedDate);
+      newEndDate.setDate(selectedDate.getDate() + 1);
+      setEndDate(formatDate(newEndDate));
+    }
+    
     setShowStartDatePicker(false);
   };
 
-  const renderStartDatePicker = () => {
-    const daysInMonth = getDaysInMonth(startDatePickerMonth);
-    const firstDay = getFirstDayOfMonth(startDatePickerMonth);
+  const handleEndDatePickerSelect = (day: number) => {
+    const selectedDate = new Date(
+      endDatePickerMonth.getFullYear(),
+      endDatePickerMonth.getMonth(),
+      day
+    );
+    const currentStartDate = parseDate(startDate);
+
+    // End date must be after start date
+    if (selectedDate > currentStartDate) {
+      setEndDate(formatDate(selectedDate));
+      setShowEndDatePicker(false);
+    }
+  };
+
+  const renderDatePicker = (
+    month: Date,
+    onPrevMonth: () => void,
+    onNextMonth: () => void,
+    onDateSelect: (day: number) => void,
+    selectedDate: string,
+    isStartPicker: boolean = true
+  ) => {
+    const daysInMonth = getDaysInMonth(month);
+    const firstDay = getFirstDayOfMonth(month);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const days = [];
@@ -341,22 +369,20 @@ const BikeBookingForm: React.FC = () => {
     for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} />);
 
     for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(
-        startDatePickerMonth.getFullYear(),
-        startDatePickerMonth.getMonth(),
-        day
-      );
+      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
       const isPast = currentDate < today;
-      const isSelected =
-        parseDate(startDate).getTime() === currentDate.getTime();
+      const isSelected = parseDate(selectedDate).getTime() === currentDate.getTime();
+      
+      // For end date picker, disable dates before or equal to start date
+      const isDisabled = !isStartPicker ? currentDate <= parseDate(startDate) : isPast;
 
       days.push(
         <button
           key={day}
-          disabled={isPast}
-          onClick={() => handleStartDatePickerSelect(day)}
+          disabled={isDisabled}
+          onClick={() => onDateSelect(day)}
           className={`w-8 h-8 text-sm font-medium rounded transition-all ${
-            isPast
+            isDisabled
               ? "text-gray-300 cursor-not-allowed"
               : isSelected
               ? "bg-black text-white"
@@ -367,7 +393,29 @@ const BikeBookingForm: React.FC = () => {
         </button>
       );
     }
-    return days;
+    return (
+      <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-2xl p-4 shadow-lg mt-2">
+        <div className="flex items-center justify-between mb-4">
+          <button onClick={onPrevMonth} className="p-2 hover:bg-gray-200 rounded-lg" type="button">
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <h3 className="font-semibold text-black text-sm">
+            {monthNames[month.getMonth()]} {month.getFullYear()}
+          </h3>
+          <button onClick={onNextMonth} className="p-2 hover:bg-gray-200 rounded-lg" type="button">
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-7 gap-1 mb-2">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+            <div key={d} className="text-center text-xs font-medium text-gray-600 py-2">
+              {d}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">{days}</div>
+      </div>
+    );
   };
 
   const getDaysInMonth = (date: Date) =>
@@ -377,26 +425,25 @@ const BikeBookingForm: React.FC = () => {
 
   const toggleDateSelection = (day: number) => {
     const today = new Date();
-    const selectedDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      day
-    );
+    const selectedDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     today.setHours(0, 0, 0, 0);
 
     if (selectedDate < today) return;
 
-    // Update start date
-    setStartDate(formatDate(selectedDate));
-    // The useEffect will handle the rest
+    // Update start date and adjust end date if necessary
+    const newStartDate = formatDate(selectedDate);
+    setStartDate(newStartDate);
+    
+    const currentEndDate = parseDate(endDate);
+    if (selectedDate >= currentEndDate) {
+      const newEndDate = new Date(selectedDate);
+      newEndDate.setDate(selectedDate.getDate() + 1);
+      setEndDate(formatDate(newEndDate));
+    }
   };
 
   const isDateInRange = (day: number): boolean => {
-    const currentDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
-      day
-    );
+    const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     return selectedDateRange.some(
       (rangeDate) =>
         rangeDate.getDate() === day &&
@@ -416,11 +463,7 @@ const BikeBookingForm: React.FC = () => {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const isSelected = isDateInRange(day);
-      const currentDate = new Date(
-        currentMonth.getFullYear(),
-        currentMonth.getMonth(),
-        day
-      );
+      const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const isPast = currentDate < today;
 
       days.push(
@@ -445,16 +488,13 @@ const BikeBookingForm: React.FC = () => {
 
   // Rental summary calculation
   const calculateSummary = (): RentalSummary => {
-    const days = selectedPresetDuration || 1;
+    const days = calculateDaysBetween(startDate, endDate);
     const bikeRental = bikeData.basePrice * days;
-    const selectedDeliveryOption = deliveryOptions.find(
-      (opt) => opt.id === selectedDelivery
-    );
+    const selectedDeliveryOption = deliveryOptions.find((opt) => opt.id === selectedDelivery);
     const deliveryPrice = selectedDeliveryOption?.price || 0;
     const selectedAddOns = addOns.filter((a) => a.selected);
     const addOnsTotal = selectedAddOns.reduce((sum, a) => sum + a.price, 0);
-    const helmet =
-      addOns.find((a) => a.id === "helmet" && a.selected)?.price || 0;
+    const helmet = addOns.find((a) => a.id === "helmet" && a.selected)?.price || 0;
     const homeDelivery = selectedDelivery === "home" ? deliveryPrice : 0;
 
     return {
@@ -475,7 +515,6 @@ const BikeBookingForm: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-[90%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* <Breadcrumb items={breadcrumbItems} /> */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -484,8 +523,7 @@ const BikeBookingForm: React.FC = () => {
                 Customize Your Ride, Your Way
               </h1>
               <p className="text-sm sm:text-base text-gray-600">
-                Set your rental duration, pick your delivery option, and select
-                add-ons to suit your adventure.
+                Set your rental duration, pick your delivery option, and select add-ons to suit your adventure.
               </p>
             </div>
 
@@ -519,11 +557,21 @@ const BikeBookingForm: React.FC = () => {
                     </div>
 
                     {/* Label */}
-                    <h3 className="font-bold text-sm sm:text-base text-black">
-                      {d.label}
-                    </h3>
+                    <h3 className="font-bold text-sm sm:text-base text-black">{d.label}</h3>
                   </div>
                 ))}
+                
+                {/* Custom Duration Indicator */}
+                {selectedPresetDuration === null && (
+                  <div className="flex-shrink-0 border-2 border-green-500 bg-green-50 rounded-xl px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
+                    <div className="w-4 sm:w-5 h-4 sm:h-5 rounded-full border-2 border-green-500 bg-green-500 flex items-center justify-center">
+                      <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-white rounded-full" />
+                    </div>
+                    <h3 className="font-bold text-sm sm:text-base text-black">
+                      Custom ({summary.days} Days)
+                    </h3>
+                  </div>
+                )}
               </div>
 
               {/* Start/End date input */}
@@ -536,72 +584,38 @@ const BikeBookingForm: React.FC = () => {
                     <input
                       type="text"
                       value={startDate}
-                      onChange={(e) =>
-                        handleDateInputChange(e.target.value, true)
-                      }
+                      onChange={(e) => handleDateInputChange(e.target.value, true)}
                       onClick={() => {
                         setShowStartDatePicker(!showStartDatePicker);
-                        setStartDatePickerMonth(
-                          parseDate(startDate) || new Date()
-                        );
+                        setShowEndDatePicker(false);
+                        setStartDatePickerMonth(parseDate(startDate) || new Date());
                       }}
                       className="w-full px-2 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base cursor-pointer"
-                      placeholder="DD/MM/YYYY"
+                      placeholder="MM/DD/YYYY"
                       readOnly
                     />
                     <Calendar
                       className="absolute right-3 top-2.5 sm:top-3 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 cursor-pointer"
                       onClick={() => {
                         setShowStartDatePicker(!showStartDatePicker);
-                        setStartDatePickerMonth(
-                          parseDate(startDate) || new Date()
-                        );
+                        setShowEndDatePicker(false);
+                        setStartDatePickerMonth(parseDate(startDate) || new Date());
                       }}
                     />
                   </div>
 
                   {/* Start Date Picker Dropdown */}
-                  {showStartDatePicker && (
-                    <div className="absolute top-full left-0 right-0 z-50 bg-white border border-gray-200 rounded-2xl p-4 shadow-lg mt-2">
-                      <div className="flex items-center justify-between mb-4">
-                        <button
-                          onClick={prevStartDateMonth}
-                          className="p-2 hover:bg-gray-200 rounded-lg"
-                          type="button"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <h3 className="font-semibold text-black text-sm">
-                          {monthNames[startDatePickerMonth.getMonth()]}{" "}
-                          {startDatePickerMonth.getFullYear()}
-                        </h3>
-                        <button
-                          onClick={nextStartDateMonth}
-                          className="p-2 hover:bg-gray-200 rounded-lg"
-                          type="button"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-7 gap-1 mb-2">
-                        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                          (d) => (
-                            <div
-                              key={d}
-                              className="text-center text-xs font-medium text-gray-600 py-2"
-                            >
-                              {d}
-                            </div>
-                          )
-                        )}
-                      </div>
-                      <div className="grid grid-cols-7 gap-1">
-                        {renderStartDatePicker()}
-                      </div>
-                    </div>
+                  {showStartDatePicker && renderDatePicker(
+                    startDatePickerMonth,
+                    prevStartDateMonth,
+                    nextStartDateMonth,
+                    handleStartDatePickerSelect,
+                    startDate,
+                    true
                   )}
                 </div>
-                <div>
+                
+                <div className="relative date-picker-container">
                   <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
                     End Date
                   </label>
@@ -609,48 +623,57 @@ const BikeBookingForm: React.FC = () => {
                     <input
                       type="text"
                       value={endDate}
-                      onChange={(e) =>
-                        handleDateInputChange(e.target.value, false)
-                      }
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
-                      placeholder="DD/MM/YYYY"
+                      onChange={(e) => handleDateInputChange(e.target.value, false)}
+                      onClick={() => {
+                        setShowEndDatePicker(!showEndDatePicker);
+                        setShowStartDatePicker(false);
+                        setEndDatePickerMonth(parseDate(endDate) || new Date());
+                      }}
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base cursor-pointer"
+                      placeholder="MM/DD/YYYY"
+                      readOnly
                     />
-                    <Calendar className="absolute right-3 top-2.5 sm:top-3 w-4 sm:w-5 h-4 sm:h-5 text-gray-400" />
+                    <Calendar 
+                      className="absolute right-3 top-2.5 sm:top-3 w-4 sm:w-5 h-4 sm:h-5 text-gray-400 cursor-pointer"
+                      onClick={() => {
+                        setShowEndDatePicker(!showEndDatePicker);
+                        setShowStartDatePicker(false);
+                        setEndDatePickerMonth(parseDate(endDate) || new Date());
+                      }}
+                    />
                   </div>
+
+                  {/* End Date Picker Dropdown */}
+                  {showEndDatePicker && renderDatePicker(
+                    endDatePickerMonth,
+                    prevEndDateMonth,
+                    nextEndDateMonth,
+                    handleEndDatePickerSelect,
+                    endDate,
+                    false
+                  )}
                 </div>
               </div>
 
               {/* Calendar */}
               <div className="bg-white border border-gray-200 rounded-2xl p-2 sm:p-4">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <button
-                    onClick={prevMonth}
-                    className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg"
-                  >
+                  <button onClick={prevMonth} className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg">
                     <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
                   </button>
                   <h3 className="font-semibold text-black text-sm sm:text-base">
-                    {monthNames[currentMonth.getMonth()]}{" "}
-                    {currentMonth.getFullYear()}
+                    {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
                   </h3>
-                  <button
-                    onClick={nextMonth}
-                    className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg"
-                  >
+                  <button onClick={nextMonth} className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg">
                     <ChevronRight className="w-4 sm:w-5 h-4 sm:h-5" />
                   </button>
                 </div>
                 <div className="grid grid-cols-7 gap-1 mb-2">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
-                    (d) => (
-                      <div
-                        key={d}
-                        className="text-center text-[10px] sm:text-sm font-medium text-gray-600 py-1.5 sm:py-2"
-                      >
-                        {d}
-                      </div>
-                    )
-                  )}
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                    <div key={d} className="text-center text-[10px] sm:text-sm font-medium text-gray-600 py-1.5 sm:py-2">
+                      {d}
+                    </div>
+                  ))}
                 </div>
                 <div className="grid grid-cols-7 gap-1">{renderCalendar()}</div>
               </div>
@@ -756,14 +779,12 @@ const BikeBookingForm: React.FC = () => {
               <div className="mt-4 sm:mt-6 flex items-start space-x-2 sm:space-x-3 text-gray-600">
                 <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
                 <p className="text-xs sm:text-sm">
-                  Safety and convenience first—add what you need, remove what
-                  you do not.
+                  Safety and convenience first—add what you need, remove what you do not.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Right Sidebar */}
           {/* Right Sidebar - Rental Summary */}
           <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border h-fit sticky top-8">
             <h2 className="text-base sm:text-lg lg:text-2xl font-bold text-black mb-4 sm:mb-6">
@@ -773,11 +794,9 @@ const BikeBookingForm: React.FC = () => {
             {/* Bike Info */}
             <div className="flex space-x-3 sm:space-x-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
               <div className="w-14 sm:w-16 h-14 sm:h-16 rounded-lg overflow-hidden bg-gray-100">
-                <Image
-                  src="/z6.jpg"
+                <img
+                  src={bikeData.image}
                   alt={bikeData.name}
-                  width={64}
-                  height={64}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -795,15 +814,11 @@ const BikeBookingForm: React.FC = () => {
             <div className="space-y-3 sm:space-y-4 mb-6">
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">Start Date</span>
-                <span className="font-medium text-black">
-                  {summary.startDate}
-                </span>
+                <span className="font-medium text-black">{summary.startDate}</span>
               </div>
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">End Date</span>
-                <span className="font-medium text-black">
-                  {summary.endDate}
-                </span>
+                <span className="font-medium text-black">{summary.endDate}</span>
               </div>
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">Total Days</span>
@@ -811,23 +826,17 @@ const BikeBookingForm: React.FC = () => {
               </div>
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">Bike Rental</span>
-                <span className="font-medium text-black">
-                  ${summary.bikeRental}
-                </span>
+                <span className="font-medium text-black">${summary.bikeRental}</span>
               </div>
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">Delivery</span>
                 <span className="font-medium text-black">
-                  {summary.deliveryOption > 0
-                    ? `$${summary.deliveryOption}`
-                    : "FREE"}
+                  {summary.deliveryOption > 0 ? `${summary.deliveryOption}` : "FREE"}
                 </span>
               </div>
               <div className="flex justify-between text-sm sm:text-base">
                 <span className="text-gray-600">Add-ons</span>
-                <span className="font-medium text-black">
-                  ${summary.addOns}
-                </span>
+                <span className="font-medium text-black">${summary.addOns}</span>
               </div>
             </div>
 
@@ -850,11 +859,9 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* Checkout Button */}
-            <Link href="/track-order">
-              <button className="w-full bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-                Continue Checkout
-              </button>
-            </Link>
+            <button className="w-full bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+              Continue Checkout
+            </button>
           </div>
         </div>
       </div>
