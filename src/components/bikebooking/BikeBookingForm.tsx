@@ -656,7 +656,7 @@ const BikeBookingForm: React.FC = () => {
               </div>
 
               {/* Calendar */}
-              <div className="hidden md:block bg-white border border-gray-200 rounded-2xl p-2 sm:p-4 pointer-events-none">
+              <div className=" bg-white border border-gray-200 rounded-2xl p-2 sm:p-4 ">
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <button onClick={prevMonth} className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg">
                     <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
