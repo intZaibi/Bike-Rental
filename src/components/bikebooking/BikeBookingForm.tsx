@@ -777,9 +777,7 @@ const BikeBookingForm: React.FC = () => {
                 ))}
               </div>
                 
-              <div className="flex">
-                <MultiStepForm/>
-              </div>
+              <MultiStepForm/>
 
               <div className="mt-4 sm:mt-6 flex items-start space-x-2 sm:space-x-3 text-gray-600">
                 <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
@@ -901,7 +899,7 @@ const MultiStepForm = ()=>{
 
   return (
     <>
-      {formStep.step === 0 && <div className="w-full relative flex flex-col items-end mt-5">
+      <div className="w-full relative flex flex-col items-end mt-5">
         <div className="w-full">
           <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
             Phone Number
@@ -928,12 +926,9 @@ const MultiStepForm = ()=>{
             </div>
           )}
         </div>
-        <button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-          Next
-        </button>
-      </div>}
+      </div>
 
-      {formStep.step === 1 && <div className="w-full relative flex flex-col items-end mt-5">
+      {formStep.step > 0 && <div className="w-full relative flex flex-col items-end mt-2">
         <div className="w-full">
           <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
             Zip Code
@@ -960,15 +955,18 @@ const MultiStepForm = ()=>{
             </div>
           )}
         </div>
-        <button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-          Next
-        </button>
       </div>}
 
-      {/* Checkout Button */}
-      {formStep.step === 2 && <button onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className="w-[80%] mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-        Continue Checkout
-      </button>}
+      {/* Buttons */}
+      <div className="flex w-full">
+        {formStep.step > 1 ? 
+          (<button onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className="w-[80%] mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+            Continue Checkout
+          </button>):
+          (<button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit ml-auto mr-0 bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+            Next
+          </button>)}
+      </div>
     </>
   )
 }
