@@ -2,7 +2,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Lightbulb } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Send, CircleAlert, Loader2 } from "lucide-react";
+import Input from "@/lib/AddressForm/Input";
 
 // Mock Breadcrumb component
 const Breadcrumb = ({
@@ -120,7 +121,7 @@ const BikeBookingForm: React.FC = () => {
     return formatDate(today);
   });
   const [selectedDelivery, setSelectedDelivery] = useState("home");
- const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(5); 
+  const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(5); 
 
   const [addOns, setAddOns] = useState<AddOn[]>([
     { id: "helmet", name: "Helmet", price: 20, selected: true },
@@ -775,6 +776,10 @@ const BikeBookingForm: React.FC = () => {
                   </div>
                 ))}
               </div>
+                
+              <div className="flex">
+                <MultiStepForm/>
+              </div>
 
               <div className="mt-4 sm:mt-6 flex items-start space-x-2 sm:space-x-3 text-gray-600">
                 <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
@@ -849,7 +854,7 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* No Hidden Fees Notice */}
-            <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="mt-2 mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex items-start space-x-2">
                 <Lightbulb className="w-3 sm:w-4 h-3 sm:h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-yellow-800">
@@ -857,11 +862,6 @@ const BikeBookingForm: React.FC = () => {
                 </p>
               </div>
             </div>
-
-            {/* Checkout Button */}
-            <button className="w-full bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-              Continue Checkout
-            </button>
           </div>
         </div>
       </div>
@@ -870,3 +870,105 @@ const BikeBookingForm: React.FC = () => {
 };
 
 export default BikeBookingForm;
+
+
+
+const MultiStepForm = ()=>{
+  const [isLoading, setIsLoading] = useState(false);
+  const [formStep, setFormStep] = useState({
+    step: 0,
+    data: {
+      phone: "",
+      zip: ""
+    },
+    errMsg: ""
+  });
+
+  const handleStepChange = ()=>{
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 300);
+    setFormStep((prev)=>({...prev, step: prev.step + 1}))
+  }
+
+  if (isLoading)
+    return (
+      <div className='h-full p-8 flex flex-col justify-center items-center w-full'>
+        <Loader2 className="w-8 h-8 animate-spin text-[#000]" />
+      </div>
+    );
+
+  return (
+    <>
+      {formStep.step === 0 && <div className="w-full relative flex flex-col items-end mt-5">
+        <div className="w-full">
+          <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
+            Phone Number
+          </label>
+          <div className="relative mb-3">
+            <input
+              type="text"
+              value={formStep.data.phone}
+              onChange={(e)=>{
+                setFormStep((prev)=>({...prev, data: {...prev.data, phone: e.target.value}}));
+                if(!(/^\+?\d{8,13}$/.test(e.target.value)))
+                setFormStep((prev)=>({...prev, errMsg: "Phone number is not valid!"}));
+                else
+                setFormStep((prev)=>({...prev, errMsg: ""}));
+              }}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+              placeholder="Enter your phone number e.g., +1234567890"
+            />
+          </div>
+          {formStep.errMsg && (
+            <div className="flex gap-2">
+              <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
+              <p className="text-red-500">{formStep.errMsg}</p>
+            </div>
+          )}
+        </div>
+        <button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+          Next
+        </button>
+      </div>}
+
+      {formStep.step === 1 && <div className="w-full relative flex flex-col items-end mt-5">
+        <div className="w-full">
+          <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
+            Zip Code
+          </label>
+          <div className="relative mb-3">
+            <input
+              type="text"
+              value={formStep.data.zip}
+              onChange={(e)=>{
+                setFormStep((prev)=>({...prev, data: {...prev.data, zip: e.target.value}}));
+                if(!(/^\d{4,7}$/.test(e.target.value)))
+                  setFormStep((prev)=>({...prev, errMsg: "Zip-code is not valid!"}));
+                else
+                  setFormStep((prev)=>({...prev, errMsg: ""}));
+              }}
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+              placeholder="Zip Code"
+            />
+          </div>
+          {formStep.errMsg && (
+            <div className="flex gap-2">
+              <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
+              <p className="text-red-500">{formStep.errMsg}</p>
+            </div>
+          )}
+        </div>
+        <button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+          Next
+        </button>
+      </div>}
+
+      {/* Checkout Button */}
+      {formStep.step === 2 && <button onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className="w-[80%] mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
+        Continue Checkout
+      </button>}
+    </>
+  )
+}
