@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert, Phone, Map } from "lucide-react";
 // import StripeCheckout from "../payment/StripeCheckout";
 // import PaymentSuccess from "../payment/PaymentSuccess";
 
@@ -993,9 +993,10 @@ const MultiStepForm = ()=>{
                 else
                 setFormStep((prev)=>({...prev, phoneErrMsg: ""}));
               }}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+              className="w-full px-3 pl-8 md:pl-12 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
               placeholder="Enter your phone number e.g., +1234567890"
             />
+            <Phone className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
           </div>
           {formStep.phoneErrMsg && (
             <div className="flex gap-2">
@@ -1022,9 +1023,10 @@ const MultiStepForm = ()=>{
                 else
                   setFormStep((prev)=>({...prev, zipErrMsg: ""}));
               }}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+              className="w-full px-3 pl-8 md:pl-12 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
               placeholder="Zip Code"
             />
+            <Map className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
           </div>
           {formStep.zipErrMsg && (
             <div className="flex gap-2">
