@@ -916,7 +916,7 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* No Hidden Fees Notice */}
-            <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="my-4 sm:my-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex items-start space-x-2">
                 <Lightbulb className="w-3 sm:w-4 h-3 sm:h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-yellow-800">
