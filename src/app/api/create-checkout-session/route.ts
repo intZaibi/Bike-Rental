@@ -85,37 +85,37 @@ export async function POST(request: NextRequest) {
     const host = request.headers.get('host') || request.nextUrl.host;
     const baseUrl = `${protocol}://${host}`;
     
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      success_url: `${baseUrl}/bike/bike-booking?success=true&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/bike/bike-booking?canceled=true`,
-      billing_address_collection: 'required',
-      shipping_address_collection: {
-        allowed_countries: ['US'],
-      },
-      payment_intent_data: {
-        metadata: {
-          bikeName,
-          startDate,
-          endDate,
-          days: days.toString(),
-          type: 'bike_rental',
-        },
-      },
-      metadata: {
-        bikeName,
-        startDate,
-        endDate,
-        days: days.toString(),
-        type: 'bike_rental',
-      },
-    });
+    // const session = await stripe.checkout.sessions.create({
+    //   payment_method_types: ['card'],
+    //   line_items: lineItems,
+    //   mode: 'payment',
+    //   success_url: `${baseUrl}/bike/bike-booking?success=true&session_id={CHECKOUT_SESSION_ID}`,
+    //   cancel_url: `${baseUrl}/bike/bike-booking?canceled=true`,
+    //   billing_address_collection: 'required',
+    //   shipping_address_collection: {
+    //     allowed_countries: ['US'],
+    //   },
+    //   payment_intent_data: {
+    //     metadata: {
+    //       bikeName,
+    //       startDate,
+    //       endDate,
+    //       days: days.toString(),
+    //       type: 'bike_rental',
+    //     },
+    //   },
+    //   metadata: {
+    //     bikeName,
+    //     startDate,
+    //     endDate,
+    //     days: days.toString(),
+    //     type: 'bike_rental',
+    //   },
+    // });
 
     return NextResponse.json({
-      sessionId: session.id,
-      url: session.url,
+      sessionId: "session.id",
+      url: "session.url",
     });
   } catch (error) {
     console.error('Error creating checkout session:', error);

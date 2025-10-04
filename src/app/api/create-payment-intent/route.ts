@@ -12,17 +12,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: formatAmountForStripe(amount),
-      currency,
-      metadata,
-      automatic_payment_methods: {
-        enabled: true,
-      },
-    });
+    // const paymentIntent = await stripe.paymentIntents.create({
+    //   amount: formatAmountForStripe(amount),
+    //   currency,
+    //   metadata,
+    //   automatic_payment_methods: {
+    //     enabled: true,
+    //   },
+    // });
 
     return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
+      clientSecret: "" 
+      // paymentIntent.client_secret,
     });
   } catch (error) {
     console.error('Error creating payment intent:', error);

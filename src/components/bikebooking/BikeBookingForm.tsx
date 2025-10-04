@@ -3,8 +3,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert } from "lucide-react";
-import StripeCheckout from "../payment/StripeCheckout";
-import PaymentSuccess from "../payment/PaymentSuccess";
+// import StripeCheckout from "../payment/StripeCheckout";
+// import PaymentSuccess from "../payment/PaymentSuccess";
 
 // Mock Breadcrumb component
 const Breadcrumb = ({
@@ -556,21 +556,21 @@ const BikeBookingForm: React.FC = () => {
 
 
   // If success page is showing, render it
-  if (showSuccessPage && sessionId) {
-    return (
-      <PaymentSuccess
-        paymentIntent={{ id: sessionId, amount: summary.total * 100, status: 'succeeded' }}
-        rentalDetails={{
-          bikeName: bikeData.name,
-          startDate: summary.startDate,
-          endDate: summary.endDate,
-          days: summary.days,
-          total: summary.total,
-        }}
-        onBackToBooking={handleBackToBooking}
-      />
-    );
-  }
+  // if (showSuccessPage && sessionId) {
+  //   return (
+  //     <PaymentSuccess
+  //       paymentIntent={{ id: sessionId, amount: summary.total * 100, status: 'succeeded' }}
+  //       rentalDetails={{
+  //         bikeName: bikeData.name,
+  //         startDate: summary.startDate,
+  //         endDate: summary.endDate,
+  //         days: summary.days,
+  //         total: summary.total,
+  //       }}
+  //       onBackToBooking={handleBackToBooking}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -926,7 +926,7 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* Checkout Button */}
-            <StripeCheckout
+            {/* <StripeCheckout
               amount={summary.total}
               bikeName={bikeData.name}
               startDate={summary.startDate}
@@ -936,7 +936,7 @@ const BikeBookingForm: React.FC = () => {
               deliveryOption={summary.deliveryOption}
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}
-            />
+            /> */}
           </div>
         </div>
       </div>
