@@ -2,8 +2,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Send, CircleAlert, Loader2 } from "lucide-react";
-import Input from "@/lib/AddressForm/Input";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb } from "lucide-react";
+import StripeCheckout from "../payment/StripeCheckout";
+import PaymentSuccess from "../payment/PaymentSuccess";
 
 // Mock Breadcrumb component
 const Breadcrumb = ({
@@ -121,7 +122,10 @@ const BikeBookingForm: React.FC = () => {
     return formatDate(today);
   });
   const [selectedDelivery, setSelectedDelivery] = useState("home");
-  const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(5); 
+  const [selectedPresetDuration, setSelectedPresetDuration] = useState<number | null>(5);
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [sessionId, setSessionId] = useState<string | null>(null); 
 
   const [addOns, setAddOns] = useState<AddOn[]>([
     { id: "helmet", name: "Helmet", price: 20, selected: true },
@@ -182,6 +186,43 @@ const BikeBookingForm: React.FC = () => {
     const diffTime = endDateObj.getTime() - startDateObj.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
   };
+
+  // Payment handlers
+  const handlePaymentSuccess = (sessionId: string) => {
+    setPaymentStatus('success');
+    setSessionId(sessionId);
+    setShowSuccessPage(true);
+  };
+
+  const handlePaymentError = (error: string) => {
+    setPaymentStatus('error');
+    console.error('Payment error:', error);
+    alert(`Payment failed: ${error}`);
+  };
+
+  const handleBackToBooking = () => {
+    setShowSuccessPage(false);
+    setPaymentStatus('idle');
+    setSessionId(null);
+  };
+
+  // Handle URL parameters for payment success/cancel
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    const sessionId = urlParams.get('session_id');
+    const canceled = urlParams.get('canceled');
+
+    if (success === 'true' && sessionId) {
+      handlePaymentSuccess(sessionId);
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (canceled === 'true') {
+      handlePaymentError('Payment was canceled');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Update date range whenever startDate or endDate changes
   useEffect(() => {
@@ -513,6 +554,24 @@ const BikeBookingForm: React.FC = () => {
 
   const summary = calculateSummary();
 
+
+  // If success page is showing, render it
+  if (showSuccessPage && sessionId) {
+    return (
+      <PaymentSuccess
+        paymentIntent={{ id: sessionId, amount: summary.total * 100, status: 'succeeded' }}
+        rentalDetails={{
+          bikeName: bikeData.name,
+          startDate: summary.startDate,
+          endDate: summary.endDate,
+          days: summary.days,
+          total: summary.total,
+        }}
+        onBackToBooking={handleBackToBooking}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-[90%] mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -661,6 +720,8 @@ const BikeBookingForm: React.FC = () => {
                 <div className="flex items-center justify-between mb-3 sm:mb-4">
                   <button onClick={prevMonth} className="p-1.5 sm:p-2 hover:bg-gray-200 rounded-lg">
                     <ChevronLeft className="w-4 sm:w-5 h-4 sm:h-5" />
+
+                    
                   </button>
                   <h3 className="font-semibold text-black text-sm sm:text-base">
                     {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
@@ -776,8 +837,6 @@ const BikeBookingForm: React.FC = () => {
                   </div>
                 ))}
               </div>
-                
-              <MultiStepForm/>
 
               <div className="mt-4 sm:mt-6 flex items-start space-x-2 sm:space-x-3 text-gray-600">
                 <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
@@ -852,7 +911,7 @@ const BikeBookingForm: React.FC = () => {
             </div>
 
             {/* No Hidden Fees Notice */}
-            <div className="mt-2 mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+            <div className="mb-4 sm:mb-6 p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
               <div className="flex items-start space-x-2">
                 <Lightbulb className="w-3 sm:w-4 h-3 sm:h-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <p className="text-xs sm:text-sm text-yellow-800">
@@ -860,6 +919,19 @@ const BikeBookingForm: React.FC = () => {
                 </p>
               </div>
             </div>
+
+            {/* Checkout Button */}
+            <StripeCheckout
+              amount={summary.total}
+              bikeName={bikeData.name}
+              startDate={summary.startDate}
+              endDate={summary.endDate}
+              days={summary.days}
+              addOns={addOns}
+              deliveryOption={summary.deliveryOption}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
           </div>
         </div>
       </div>
@@ -868,105 +940,3 @@ const BikeBookingForm: React.FC = () => {
 };
 
 export default BikeBookingForm;
-
-
-
-const MultiStepForm = ()=>{
-  const [isLoading, setIsLoading] = useState(false);
-  const [formStep, setFormStep] = useState({
-    step: 0,
-    data: {
-      phone: "",
-      zip: ""
-    },
-    errMsg: ""
-  });
-
-  const handleStepChange = ()=>{
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 300);
-    setFormStep((prev)=>({...prev, step: prev.step + 1}))
-  }
-
-  if (isLoading)
-    return (
-      <div className='h-full p-8 flex flex-col justify-center items-center w-full'>
-        <Loader2 className="w-8 h-8 animate-spin text-[#000]" />
-      </div>
-    );
-
-  return (
-    <>
-      <div className="w-full relative flex flex-col items-end mt-5">
-        <div className="w-full">
-          <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
-            Phone Number
-          </label>
-          <div className="relative mb-3">
-            <input
-              type="text"
-              value={formStep.data.phone}
-              onChange={(e)=>{
-                setFormStep((prev)=>({...prev, data: {...prev.data, phone: e.target.value}}));
-                if(!(/^\+?\d{8,13}$/.test(e.target.value)))
-                setFormStep((prev)=>({...prev, errMsg: "Phone number is not valid!"}));
-                else
-                setFormStep((prev)=>({...prev, errMsg: ""}));
-              }}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
-              placeholder="Enter your phone number e.g., +1234567890"
-            />
-          </div>
-          {formStep.errMsg && (
-            <div className="flex gap-2">
-              <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
-              <p className="text-red-500">{formStep.errMsg}</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {formStep.step > 0 && <div className="w-full relative flex flex-col items-end mt-2">
-        <div className="w-full">
-          <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
-            Zip Code
-          </label>
-          <div className="relative mb-3">
-            <input
-              type="text"
-              value={formStep.data.zip}
-              onChange={(e)=>{
-                setFormStep((prev)=>({...prev, data: {...prev.data, zip: e.target.value}}));
-                if(!(/^\d{4,7}$/.test(e.target.value)))
-                  setFormStep((prev)=>({...prev, errMsg: "Zip-code is not valid!"}));
-                else
-                  setFormStep((prev)=>({...prev, errMsg: ""}));
-              }}
-              className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
-              placeholder="Zip Code"
-            />
-          </div>
-          {formStep.errMsg && (
-            <div className="flex gap-2">
-              <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
-              <p className="text-red-500">{formStep.errMsg}</p>
-            </div>
-          )}
-        </div>
-      </div>}
-
-      {/* Buttons */}
-      <div className="flex w-full">
-        {formStep.step > 1 ? 
-          (<button onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className="w-[80%] mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-            Continue Checkout
-          </button>):
-          (<button disabled={formStep.errMsg.length>0} onClick={handleStepChange} className="h-fit w-fit ml-auto mr-0 bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors">
-            Next
-          </button>)}
-      </div>
-    </>
-  )
-}

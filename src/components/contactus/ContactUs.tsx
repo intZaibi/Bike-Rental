@@ -27,21 +27,18 @@ const ContactUsPage: React.FC = () => {
   };
 
   const faqs: FAQ[] = [
-    {
-      question: "Do I need to make a reservation in advance?",
-      answer: "While walk-ins are welcome, we recommend making a reservation, especially during peak seasons and weekends, to ensure bike availability."
-    },
+
     {
       question: "What do I need to bring for bike rental?",
       answer: "Please bring a valid photo ID (driver's license, passport, or state ID) and a credit card. We also recommend comfortable clothing and closed-toe shoes."
     },
     {
       question: "Are helmets included with bike rentals?",
-      answer: "Yes! All rentals include a complimentary helmet, bike lock, and basic safety equipment. We have various helmet sizes available for all ages."
+      answer: "No. However, if available at the time of purchase, you may add a complimentary helmet, bike lock, and or other equipment."
     },
     {
       question: "What happens if my bike breaks down during rental?",
-      answer: "Contact our 24/7 support line immediately. We'll provide roadside assistance or a replacement bike as quickly as possible at no additional charge."
+      answer: "Contact the brand of the bike you've been given, as we provide bikes from various brands."
     }
   ];
 
@@ -59,10 +56,41 @@ const ContactUsPage: React.FC = () => {
 
         {/* Contact Numbers Section */}
         <div className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">Contact Numbers</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Contact Information</h2>
           <div className="grid md:grid-cols-2 gap-8">
+
             {/* Customer Service */}
             <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                <Mail className="h-5 w-5 text-black mr-2" />
+                Email Support
+              </h3>
+              <div className="text-gray-600 space-y-1">
+                <p>Lighting Bike Email Support</p>
+                <p>Orlando, Florida, USA</p>
+                <p className="text-sm text-black mt-3">
+                  <a href="mailto:support@bikerent.com">info@lightingbike.com</a>
+                </p>
+              </div>
+            </div>
+
+            {/* Business Hours */}
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                <Clock className="h-5 w-5 text-black mr-2" />
+                Business Hours
+              </h3>
+              <div className="text-gray-600 space-y-1">
+                <p><span className="font-medium">Monday - Friday:</span> 6:00 AM - 10:00 PM</p>
+                <p><span className="font-medium">Saturday:</span> 8:00 AM - 8:00 PM</p>
+                <p><span className="font-medium">Sunday:</span> 8:00 AM - 6:00 PM</p>
+                {/* <p className="text-sm text-green-600 mt-3">
+                  Emergency support available 24/7
+                </p> */}
+              </div>
+            </div>
+            {/* Customer Service */}
+            {/* <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <Phone className="h-5 w-5 text-black mr-2" />
                 Customer Service & Bike Rentals
@@ -75,10 +103,10 @@ const ContactUsPage: React.FC = () => {
                   Customer service representatives are available daily from 6 AM to 10 PM PST
                 </p>
               </div>
-            </div>
+            </div> */}
 
             {/* Technical Support */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            {/* <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                 <MessageCircle className="h-5 w-5 text-black mr-2" />
                 Technical & App Support
@@ -94,16 +122,16 @@ const ContactUsPage: React.FC = () => {
                   <p className="text-sm"><strong>HELP (#4357)</strong> - Get quick support</p>
                 </div>
               </div>
-            </div>
-          </div>
+            </div> */}
+          {/* </div> */}
         </div>
 
         {/* Addresses Section */}
-        <div className="mb-16">
+        {/* <div className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-8">Our Locations</h2>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6"> */}
             {/* Main Office */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            {/* <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <MapPin className="h-5 w-5 text-black mr-2" />
                 Main Office
@@ -116,10 +144,10 @@ const ContactUsPage: React.FC = () => {
                   Please don't send payments to this address
                 </p>
               </div>
-            </div>
+            </div> */}
 
             {/* Customer Service */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            {/* <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <Mail className="h-5 w-5 text-black mr-2" />
                 Customer Service
@@ -132,10 +160,10 @@ const ContactUsPage: React.FC = () => {
                   <a href="mailto:support@bikerent.com">support@bikerent.com</a>
                 </p>
               </div>
-            </div>
+            </div> */}
 
             {/* Business Hours */}
-            <div className="bg-white rounded-lg p-6 shadow-sm border">
+            {/* <div className="bg-white rounded-lg p-6 shadow-sm border">
               <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
                 <Clock className="h-5 w-5 text-black mr-2" />
                 Business Hours
@@ -149,7 +177,7 @@ const ContactUsPage: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* FAQ Section */}

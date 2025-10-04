@@ -23,20 +23,14 @@ const BikeRentalFeatures: React.FC = () => {
       id: 2,
       icon: Bike,
       title: "Flexible Rentals",
-      description: "Rent by the hour, day, week, or even month. Your choice.",
+      description: "Rent as long as a day, week, or even month. Your choice.",
     },
     {
       id: 3,
       icon: Package,
       title: "Doorstep Delivery",
-      description: "Skip the pickup. We deliver and collect from your address.",
-    },
-    {
-      id: 4,
-      icon: CheckCircle,
-      title: "Fully Inspected & Safe",
-      description: "All bikes are serviced and certified before every ride.",
-    },
+      description: "Pick up not necessary. We deliver and collect from your address.",
+    }
   ];
 
   const FeatureBox: React.FC<{ feature: FeatureData }> = ({ feature }) => {
@@ -71,7 +65,7 @@ const BikeRentalFeatures: React.FC = () => {
       <div className="max-w-[90%] mx-auto px-2 sm:px-4 lg:px-8">
         {/* Header */}
         <h2 className="text-xl sm:text-3xl font-bold text-center text-gray-900 mb-6 sm:mb-12">
-          Why Thousands Trust Us For Their Bike Rentals
+          What Makes Us Different
         </h2>
 
         {/* Features Grid */}

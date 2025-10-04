@@ -99,12 +99,12 @@ const About: React.FC = () => {
             Explore the City on Two Wheels
           </h1>
           <p className="max-w-2xl mx-auto text-base sm:text-lg mb-10 opacity-95">
-            Welcome to BikeRental, your trusted partner for premium bicycle
-            rentals. Eco-friendly, reliable, and designed for your adventure.
+            Welcome to Lighting Bike, the innovative, robust service for affordable
+            and flexible rentals.
           </p>
-          <button className="px-8 py-3 bg-white text-black font-semibold rounded-full shadow-md hover:bg-gray-100 transition">
+          {/* <button className="px-8 py-3 bg-white text-black font-semibold rounded-full shadow-md hover:bg-gray-100 transition">
             Book Your Ride
-          </button>
+          </button> */}
         </div>
 
         {/* Hero Background Image */}
@@ -125,14 +125,11 @@ const About: React.FC = () => {
             </h2>
             <p className="text-gray-700 text-base sm:text-lg leading-relaxed mb-4">
               We started our journey with a vision to make bike rentals more
-              accessible, eco-friendly, and reliable for everyone. From humble
-              beginnings, we’ve grown into a trusted platform that connects
-              people with the perfect ride for their adventures.
+              accessible and reliable for everyone.
             </p>
             <p className="text-gray-700 text-base sm:text-lg leading-relaxed">
-              Our commitment has always been to deliver quality, build trust,
-              and promote sustainability while creating unforgettable cycling
-              experiences for our community.
+              Our commitment has always been to deliver quality and sustainable
+              rentals for the individuals using our service.
             </p>
           </div>
 
@@ -153,10 +150,10 @@ const About: React.FC = () => {
       <BikeRentalFeatures />
 
       {/* Why Choose Us */}
-      <section className="py-16">
+      {/* <section className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Why Choose BikeRental?
+            Why Choose Lighting Bike?
           </h2>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
@@ -165,14 +162,14 @@ const About: React.FC = () => {
                 Quality & Reliability
               </h3>
               <p className="text-gray-600 mb-4">
-                All our bikes undergo regular maintenance and safety checks by
-                certified mechanics. We use only premium brands and ensure every
-                bike meets our high standards before rental.
+                Our bikes are from prominent, trusted brands such as 
+                Letric, Concord or Nishiki. You won't be second guessing
+                on Bike quality with us.
               </p>
               <p className="text-gray-600">
-                Our commitment to quality means you can trust our bikes for
-                safe, comfortable rides whether you&apos;re commuting,
-                sightseeing, or exercising.
+                With our selections and delivery options, you're able to 
+                be confident that we'll be able to provide you a bike across
+                very many situations. You can have faith that you're in good hands.
               </p>
             </div>
             <Image
@@ -235,17 +232,17 @@ const About: React.FC = () => {
             />
           </div>
         </div>
-      </section>
+      </section> */}
 
-      <CustomerReviewSection />
+      {/* <CustomerReviewSection /> */}
 
       {/* Call to Action */}
-      <section className="relative py-16 text-white text-center">
+      {/* <section className="relative py-16 text-white text-center"> */}
         {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-black/70 z-0"></div>
+        {/* <div className="absolute inset-0 bg-black/70 z-0"></div> */}
 
         {/* Background Image */}
-        <Image
+        {/* <Image
           src="/about/shop-storefront.jpg"
           alt="Bike rental storefront"
           fill
@@ -264,8 +261,8 @@ const About: React.FC = () => {
           <button className="px-8 py-3 bg-white text-black font-semibold rounded-full shadow-md hover:bg-gray-100 transition">
             Reserve Now
           </button>
-        </div>
-      </section>
+        </div> */}
+      {/* </section> */}
     </div>
   );
 };
