@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert, Phone, Map } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert, Phone, Map, ArrowDown, Divide } from "lucide-react";
 // import StripeCheckout from "../payment/StripeCheckout";
 // import PaymentSuccess from "../payment/PaymentSuccess";
 
@@ -976,9 +976,18 @@ const MultiStepForm = ()=>{
     );
 
   return (
-    <>
-      <div className="w-full relative flex flex-col items-end mt-5">
-        <div className="w-full">
+    <div className="relative w-full">
+
+      {/* step 1 Heading */}
+      <div className="flex mt-5 gap-3">
+        <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
+          <ArrowDown/>
+        </div>
+        <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 1</h2>
+      </div>
+      {/* step 1 field */}
+      <div className="w-full flex flex-col border-l-2 border-gray-400 ml-5">
+        <div className="w-full px-7">
           <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
             Phone Number
           </label>
@@ -1007,46 +1016,82 @@ const MultiStepForm = ()=>{
         </div>
       </div>
 
-      {formStep.step > 0 && <div className="w-full relative flex flex-col items-end mt-5">
-        <div className="w-full">
-          <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
-            Zip Code
-          </label>
-          <div className="relative mb-3">
-            <input
-              type="text"
-              value={formStep.data.zip}
-              onChange={(e)=>{
-                setFormStep((prev)=>({...prev, data: {...prev.data, zip: e.target.value}}));
-                if(!(/^\d{4,7}$/.test(e.target.value)))
-                  setFormStep((prev)=>({...prev, zipErrMsg: "Zip-code is not valid!"}));
-                else
-                  setFormStep((prev)=>({...prev, zipErrMsg: ""}));
-              }}
-              className="w-full px-3 pl-8 md:pl-12 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
-              placeholder="Zip Code"
-            />
-            <Map className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
-          </div>
-          {formStep.zipErrMsg && (
-            <div className="flex gap-2">
-              <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
-              <p className="text-red-500">{formStep.zipErrMsg}</p>
+      {/* step 2 */}
+      {formStep.step > 0 && (
+        <>
+          {/* step 2 Heading */}
+          <div className="flex gap-3">
+            <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
+              <ArrowDown/>
             </div>
-          )}
-        </div>
-      </div>}
+            <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 2</h2>
+          </div>
+          {/* step 2 field */}
+          <div className="w-full flex flex-col border-l-2 border-gray-400 ml-5"> 
+            <div className="w-full flex flex-col border-l-2 border-gray-400 ml-5"></div>
+            <div className="w-full px-7">
+              <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
+                Zip Code
+              </label>
+              <div className="relative mb-3">
+                <input
+                  type="text"
+                  value={formStep.data.zip}
+                  onChange={(e)=>{
+                    setFormStep((prev)=>({...prev, data: {...prev.data, zip: e.target.value}}));
+                    if(!(/^\d{4,7}$/.test(e.target.value)))
+                      setFormStep((prev)=>({...prev, zipErrMsg: "Zip-code is not valid!"}));
+                    else
+                      setFormStep((prev)=>({...prev, zipErrMsg: ""}));
+                  }}
+                  className="w-full px-3 pl-8 md:pl-12 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-black focus:border-black text-sm sm:text-base"
+                  placeholder="Zip Code"
+                />
+                <Map className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
+              </div>
+              {formStep.zipErrMsg && (
+                <div className="flex gap-2">
+                  <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
+                  <p className="text-red-500">{formStep.zipErrMsg}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Buttons */}
       <div className="flex w-full">
         {formStep.step > 1 ? 
-          (<button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} w-[80%] mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
-            Continue Checkout
-          </button>):
-          (<button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={handleStepChange} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} h-fit w-fit ml-auto mr-0 bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
-            Next
-          </button>)}
+
+          // Checkout Button
+          (<div className="flex flex-col w-full">
+            {/* step 3 Heading */}
+            <div className="flex">
+              <div className="flex items-center gap-3">
+                <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
+                  <ArrowDown/>
+                </div>
+                <div className="w-0.5 bg-gray-300 mt-2"></div>
+              </div>
+              <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 3</h2>
+            </div>
+            {/* Button */}
+            <div className="w-full pl-12 pr-1">
+              <button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} w-full mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
+                Continue Checkout
+              </button>
+            </div>
+          </div>):
+
+          // Next Button
+          (<button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={handleStepChange} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} h-fit w-fit ml-auto mr-1 bg-black text-white px-8 flex items-center justify-center py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
+              Next
+          </button>)
+
+        }
       </div>
-    </>
+
+    </div>
   )
 }
