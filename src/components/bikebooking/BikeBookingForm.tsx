@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert, Phone, Map, ArrowDown, Divide } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Lightbulb, Loader2, CircleAlert, Phone, Map, ArrowDown, Divide, Check } from "lucide-react";
 // import StripeCheckout from "../payment/StripeCheckout";
 // import PaymentSuccess from "../payment/PaymentSuccess";
 
@@ -1069,15 +1069,18 @@ const MultiStepForm = ()=>{
             {/* step 3 Heading */}
             <div className="flex">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
-                  <ArrowDown/>
+                <div className="p-1.5 w-fit bg-green-500 rounded-full border-2 border-gray-100 text-white ">
+                  <Check/>
                 </div>
                 <div className="w-0.5 bg-gray-300 mt-2"></div>
               </div>
-              <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 3</h2>
+              <h2 className="font-bold text-green-500 text-xl mb-2 -ml-1 mt-1">Proceed!</h2>
             </div>
             {/* Button */}
             <div className="w-full pl-12 pr-1">
+              <p className="block text-xs sm:text-sm font-medium text-black">
+                Checkout
+              </p>
               <button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} w-full mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
                 Continue Checkout
               </button>
