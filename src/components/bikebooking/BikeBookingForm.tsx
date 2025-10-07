@@ -841,7 +841,8 @@ const BikeBookingForm: React.FC = () => {
               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 my-4 sm:my-6">
                 Billing info
               </h2>  
-              <MultiStepForm/>
+
+              <MultiStepForm />
 
               <div className="mt-4 sm:mt-6 flex items-start space-x-2 sm:space-x-3 text-gray-600">
                 <Lightbulb className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-yellow-500" />
@@ -948,7 +949,14 @@ export default BikeBookingForm;
 
 
 
-const MultiStepForm = ()=>{
+const MultiStepForm = (
+  { Step1Element,
+    Step2Element,
+    Step3Element }: 
+  { Step1Element?: React.FC,
+    Step2Element?: React.FC,
+    Step3Element?: React.FC }
+)=>{
   const [isLoading, setIsLoading] = useState(false);
   const [formStep, setFormStep] = useState({
     step: 0,
@@ -980,10 +988,12 @@ const MultiStepForm = ()=>{
 
       {/* step 1 Heading */}
       <div className="flex mt-5 gap-3">
-        <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
-          <ArrowDown/>
+        <div className={`p-1.5 w-fit rounded-full ${formStep.step > 0 ? "bg-green-500 border-gray-100 text-white" : "border-[#777777] text-[#777777]"} border-2`}>
+          {formStep.step > 0 ? 
+          <Check/>:
+          <ArrowDown/>}
         </div>
-        <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 1</h2>
+        <h2 className={`font-bold ${formStep.step > 0 ? "text-green-500" : ""} text-xl mb-2 -ml-1 mt-1`}>Step 1</h2>
       </div>
       {/* step 1 field */}
       <div className="w-full flex flex-col border-l-2 border-gray-400 ml-5">
@@ -991,10 +1001,13 @@ const MultiStepForm = ()=>{
           <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
             Phone Number
           </label>
+          <p className="mb-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero aspernatur eveniet nulla, delectus assumenda minus vel incidunt ratione architecto dolor porro ab maxime eum harum quae fugiat, ipsum sequi dolorum!</p>
+          {Step1Element ? <Step1Element/> :
           <div className="relative mb-3">
             <input
               type="text"
               value={formStep.data.phone}
+              disabled={formStep.step > 0}
               onChange={(e)=>{
                 setFormStep((prev)=>({...prev, data: {...prev.data, phone: e.target.value}}));
                 if(!(/^\+?\d{8,13}$/.test(e.target.value)))
@@ -1006,7 +1019,7 @@ const MultiStepForm = ()=>{
               placeholder="Enter your phone number e.g., +1234567890"
             />
             <Phone className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
-          </div>
+          </div>}
           {formStep.phoneErrMsg && (
             <div className="flex gap-2">
               <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
@@ -1021,10 +1034,12 @@ const MultiStepForm = ()=>{
         <>
           {/* step 2 Heading */}
           <div className="flex gap-3">
-            <div className="p-1.5 w-fit rounded-full border-2 border-[#777777] text-[#777777] ">
-              <ArrowDown/>
+            <div className={`p-1.5 w-fit rounded-full ${formStep.step > 1 ? "bg-green-500 border-gray-100 text-white" : "border-[#777777] text-[#777777]"} border-2`}>
+              {formStep.step > 1 ? 
+              <Check/>:
+              <ArrowDown/>}
             </div>
-            <h2 className="font-bold text-xl mb-2 -ml-1 mt-1">Step 2</h2>
+            <h2 className={`font-bold ${formStep.step > 1 ? "text-green-500" : ""} text-xl mb-2 -ml-1 mt-1`}>Step 2</h2>
           </div>
           {/* step 2 field */}
           <div className="w-full flex flex-col border-l-2 border-gray-400 ml-5"> 
@@ -1033,10 +1048,13 @@ const MultiStepForm = ()=>{
               <label className="block text-xs sm:text-sm font-medium text-black mb-1 sm:mb-2">
                 Zip Code
               </label>
+              <p className="mb-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero aspernatur eveniet nulla, delectus assumenda minus vel incidunt ratione architecto dolor porro ab maxime eum harum quae fugiat, ipsum sequi dolorum!</p>
+              {Step2Element ? <Step2Element/> :
               <div className="relative mb-3">
                 <input
                   type="text"
                   value={formStep.data.zip}
+                  disabled={formStep.step > 1}
                   onChange={(e)=>{
                     setFormStep((prev)=>({...prev, data: {...prev.data, zip: e.target.value}}));
                     if(!(/^\d{4,7}$/.test(e.target.value)))
@@ -1048,7 +1066,7 @@ const MultiStepForm = ()=>{
                   placeholder="Zip Code"
                 />
                 <Map className="absolute left-2 top-2 md:left-3.5 md:top-3 w-4 md:w-6 "/>
-              </div>
+              </div>}
               {formStep.zipErrMsg && (
                 <div className="flex gap-2">
                   <CircleAlert className="w-4 sm:w-5 h-4 sm:h-5 mt-0.5 text-red-500"/>
@@ -1081,9 +1099,11 @@ const MultiStepForm = ()=>{
               <p className="block text-xs sm:text-sm font-medium text-black">
                 Checkout
               </p>
+              <p className="mb-3">Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero aspernatur eveniet nulla, delectus assumenda minus vel incidunt ratione architecto dolor porro ab maxime eum harum quae fugiat, ipsum sequi dolorum!</p>
+              {Step3Element ? <Step3Element/> :
               <button disabled={formStep.zipErrMsg.length > 0 || formStep.phoneErrMsg.length > 0} onClick={()=>alert(`Phone: ${formStep.data.phone}\nZip Code: ${formStep.data.zip}`)} className={`${(formStep.phoneErrMsg || formStep.zipErrMsg) ? "cursor-not-allowed" : ""} w-full mx-auto mt-4 bg-black text-white py-2.5 sm:py-3 rounded-3xl font-medium text-sm sm:text-base hover:bg-gray-800 transition-colors`}>
                 Continue Checkout
-              </button>
+              </button>}
             </div>
           </div>):
 
